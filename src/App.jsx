@@ -31,12 +31,58 @@ button:hover{filter:brightness(1.15)}
 `;
 
 // ─────────────────────────────────────────────────────────────
+// HOMEPAGE
+// ─────────────────────────────────────────────────────────────
+function HomePage({ onNavigate }) {
+  const groups = [...new Set(TOPICS.map(t => t.group))];
+  
+  return (
+    <div style={{ padding: "40px 20px", maxWidth: 800 }}>
+      <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: C.muted, letterSpacing: 2, marginBottom: 12, textTransform: "uppercase" }}>
+        Welcome to
+      </div>
+      <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 42, fontWeight: 700, color: C.white, margin: "0 0 16px", letterSpacing: -1 }}>
+        Multivariable Calculus
+      </h1>
+      <p style={{ fontFamily: "'Lora',serif", fontSize: 18, color: C.text, lineHeight: 1.7, marginBottom: 32, maxWidth: 600 }}>
+        Interactive visualizations to help you understand vectors, surfaces, derivatives, and integrals in multiple dimensions.
+      </p>
+      
+      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 600, color: C.white, marginBottom: 16 }}>
+        Choose a topic to start
+      </h2>
+      
+      {groups.map(group => (
+        <div key={group} style={{ marginBottom: 24 }}>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: C.cyan, letterSpacing: 1.5, marginBottom: 10, textTransform: "uppercase" }}>
+            {group}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {TOPICS.filter(t => t.group === group).map(topic => (
+              <button key={topic.id} onClick={() => onNavigate(topic.id)} style={{
+                background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8,
+                padding: "12px 18px", color: C.text, fontSize: 14,
+                fontFamily: "'Lora',serif", cursor: "pointer", textAlign: "left",
+                display: "flex", alignItems: "center", gap: 10, transition: "all 0.15s"
+              }}>
+                <span style={{ color: topic.color, fontFamily: "'JetBrains Mono',monospace", fontSize: 16 }}>{topic.icon}</span>
+                {topic.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // CURRICULUM
 // ─────────────────────────────────────────────────────────────
 const TOPICS = [
   { id:"vectors",   label:"Vectors & 3D Space",          icon:"⟨⟩",  color:C.cyan,   group:"Vectors" },
   { id:"lines3d",   label:"Lines & Planes in 3D",        icon:"⊥",   color:C.green,  group:"Vectors" },
-  { id:"curves",    label:"Vector-Valued Functions",      icon:"r(t)", color:C.gold,  group:"Vectors" },
+  { id:"curves",    label:"Vector-Valued Functions",      icon:"r", color:C.gold,  group:"Vectors" },
   { id:"surfaces",  label:"Functions of Two Variables",   icon:"f",   color:C.gold,   group:"Surfaces" },
   { id:"levelcurves", label:"Level Curves & Contours",   icon:"≡",   color:C.green,  group:"Surfaces" },
   { id:"quadrics",  label:"Quadric Surfaces",             icon:"◉",   color:C.purple, group:"Surfaces" },
@@ -120,7 +166,7 @@ const Note = ({ title, children, color=C.purple }) => {
   );
 };
 const PlotBox = ({ id, h=430 }) => (
-  <div id={id} style={{ height:h, borderRadius:12, overflow:"hidden",
+  <div id={id} className="plot-box" style={{ height:h, borderRadius:12, overflow:"hidden",
     border:`1px solid ${C.border}`, margin:"18px 0", background:"#080F1C" }} />
 );
 const Slider = ({ label, value, min, max, step=0.1, onChange }) => (
@@ -283,7 +329,7 @@ Magnitude:  |v| = √(a² + b² + c²)</Eq>
 
     <H3>Interactive Vector Lab</H3>
     <P>Drag the sliders to change vector components. Watch the cross product (purple) stay perpendicular to both:</P>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}} className="grid-2col">
       <div>
         <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,color:C.cyan,marginBottom:8}}>
           a = ⟨{ax},{ay},{az}⟩   |a| = {mA.toFixed(3)}
@@ -301,7 +347,7 @@ Magnitude:  |v| = √(a² + b² + c²)</Eq>
         <Slider label="b_z" value={bz} min={-3} max={3} onChange={setBz}/>
       </div>
     </div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginTop:6}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginTop:6}} className="grid-2col">
       <Note color={C.cyan}>a · b = {dot.toFixed(3)}</Note>
       <Note color={C.gold}>θ = {theta}°</Note>
       <Note color={C.purple}>a × b = ⟨{cx.toFixed(2)},{cy.toFixed(2)},{cz.toFixed(2)}⟩</Note>
@@ -720,7 +766,7 @@ how engineers design heat fins to maximize temperature gradient.`}
       <Em c={C.green}> Green dashed line</Em>: tangent to the level curve through P.
       Notice: the red arrow is always exactly 90° from the green line!
     </P>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}} className="grid-2col">
       <Slider label="x" value={gcx} min={-2.5} max={2.5} step={0.05} onChange={setGcx}/>
       <Slider label="y" value={gcy} min={-2.5} max={2.5} step={0.05} onChange={setGcy}/>
     </div>
@@ -870,7 +916,7 @@ function PartialPage() {
 
     <H3>Interactive: Tangent Lines at Any Point</H3>
     <P>Move (a,b) to see the tangent lines (slices of the tangent plane) in the x and y directions:</P>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}} className="grid-2col">
       <Slider label="a (x)" value={px} min={-2.5} max={2.5} step={0.05} onChange={setPx}/>
       <Slider label="b (y)" value={py} min={-2.5} max={2.5} step={0.05} onChange={setPy}/>
     </div>
@@ -949,7 +995,7 @@ D_û f = ⟨2,2⟩ · ⟨1/√2, 1/√2⟩ = 2√2`}
 
     <H3>Interactive Gradient Explorer</H3>
     <P>White arrows: gradient field ∇f. Red arrow: ∇f at your chosen point — always perpendicular to the level curve (contour) through it!</P>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}} className="grid-2col">
       <Slider label="x" value={gx} min={-2.5} max={2.5} step={0.05} onChange={setGx}/>
       <Slider label="y" value={gy} min={-2.5} max={2.5} step={0.05} onChange={setGy}/>
     </div>
@@ -1261,7 +1307,7 @@ If conservative, find f by integrating: f = ∫P dx + C(y), then determine C(y) 
     <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
       {Object.entries(FIELDS).map(([k,v])=><Btn key={k} active={ft===k} onClick={()=>setFt(k)} color={C.gold}>{k}</Btn>)}
     </div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}} className="grid-2col">
       <Note color={C.cyan}>{FIELDS[ft].divStr}</Note>
       <Note color={C.purple}>{FIELDS[ft].curlStr}</Note>
     </div>
@@ -2037,7 +2083,7 @@ integrals (∫F·dr) may differ if orientation differs.`}
       ))}
     </div>
     {curve2D==="ellipse" && (
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:8}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:8}} className="grid-2col">
         <Slider label="Semi-axis a" value={eA} min={0.3} max={3} step={0.05} onChange={setEA}/>
         <Slider label="Semi-axis b" value={eB} min={0.3} max={3} step={0.05} onChange={setEB}/>
       </div>
@@ -2286,7 +2332,7 @@ Area = ∫₀^{2π} ∫₀^π R² sinφ dφ dθ = 4πR²   ✓`}
       ))}
     </div>
     {surfType==="torus" && (
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:8}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:8}} className="grid-2col">
         <Slider label="Major radius R" value={torusR} min={1} max={3} step={0.05} onChange={setTorusR}/>
         <Slider label="Tube radius r" value={torusr} min={0.1} max={Math.min(torusR-0.1,1.5)} step={0.05} onChange={setTorusr}/>
       </div>
@@ -2468,7 +2514,7 @@ Complete the square in x:
     </div>
     <Note color={C.purple}><Em c={C.gold}>{QUADRICS[qt].eq}</Em>{"\n"}{QUADRICS[qt].desc}</Note>
     {qt !== "hypParaboloid" && (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 8 }} className="grid-2col">
         <Slider label="a" value={a2} min={0.3} max={3} step={0.05} onChange={setA2} />
         <Slider label="b" value={b2} min={0.3} max={3} step={0.05} onChange={setB2} />
         <Slider label="c" value={c2} min={0.3} max={3} step={0.05} onChange={setC2} />
@@ -2951,7 +2997,7 @@ The differentials encode the fundamental relations!`}
       ))}
     </div>
 
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 10 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 10 }} className="grid-2col">
       <div>
         <Slider label="a (x)" value={px} min={-2} max={2} step={0.05} onChange={setPx} />
         <Slider label="b (y)" value={py} min={-2} max={2} step={0.05} onChange={setPy} />
@@ -3004,16 +3050,157 @@ const PAGES = {
 };
 
 export default function App() {
+  const [showHome, setShowHome] = useState(true);
   const [active,setActive]=useState("vectors");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const idx=TOPICS.findIndex(t=>t.id===active);
   const Page=PAGES[active];
 
+  const handleNavClick = (id) => {
+    setActive(id);
+    setMobileMenuOpen(false);
+  };
+
+  const handleHomeNavClick = (id) => {
+    setActive(id);
+    setShowHome(false);
+  };
+
+  if (showHome) {
+    return (
+      <>
+        <style>{FONTS}</style>
+        <style>{`
+          @media (max-width: 768px) {
+            .sidebar { position: fixed !important; left: 0 !important; top: 0 !important; z-index: 1000 !important; transform: translateX(-100%) !important; transition: transform 0.3s ease !important; }
+            .sidebar.open { transform: translateX(0) !important; }
+            .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; }
+            .sidebar-overlay.show { display: block; }
+            .mobile-menu-btn { display: flex !important; }
+          }
+          @media (min-width: 769px) {
+            .mobile-menu-btn { display: none !important; }
+            .sidebar-overlay { display: none !important; }
+          }
+        `}</style>
+        <div style={{display:"flex",background:C.bg,minHeight:"100vh",color:C.text}}>
+
+          {/* Mobile Menu Button */}
+          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{
+            position: "fixed", top: 12, left: 12, zIndex: 1001,
+            width: 44, height: 44, padding: 0,
+            background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8,
+            color: C.white, fontSize: 20, cursor: "pointer",
+            alignItems: "center", justifyContent: "center"
+          }}>
+            {mobileMenuOpen ? "✕" : "☰"}
+          </button>
+
+          {/* Mobile Overlay */}
+          <div className={`sidebar-overlay ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
+
+          {/* Sidebar */}
+          <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{
+            width:264, background:C.surface, borderRight:`1px solid ${C.border}`,
+            flexShrink:0, display:"flex", flexDirection:"column",
+            position:"sticky", top:0, height:"100vh", overflowY:"auto",
+          }}>
+            <div style={{padding:"24px 20px 18px",borderBottom:`1px solid ${C.border}`}}>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:C.muted,
+                letterSpacing:2.5,marginBottom:6,textTransform:"uppercase"}}>
+                Full Course
+              </div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:19,fontWeight:700,
+                color:C.white,lineHeight:1.3}}>
+                Fuck Multivariable{"\n"}Calculus
+              </div>
+            </div>
+
+            {/* Nav */}
+            <nav style={{flex:1,padding:"12px 0",overflowY:"auto"}}>
+              {["Vectors","Surfaces","Differentiation","Integration"].map(grp=>{
+                const ts=TOPICS.filter(t=>t.group===grp);
+                return (
+                  <div key={grp}>
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:C.muted,
+                      letterSpacing:1.5,padding:"14px 20px 8px",textTransform:"uppercase"}}>
+                      {grp}
+                    </div>
+                    {ts.map(t=>(
+                      <button key={t.id} onClick={()=>handleNavClick(t.id)} style={{
+                        width:"100%",textAlign:"left",background:"transparent",border:"none",
+                        padding:"10px 20px",color:active===t.id ? C.white : C.text,
+                        fontSize:14,fontFamily:"'Lora',serif",cursor:"pointer",
+                        display:"flex",alignItems:"center",gap:10,
+                        borderLeft:active===t.id ? `3px solid ${t.color}` : "3px solid transparent",
+                      }}>
+                        <span style={{color:t.color,fontFamily:"'JetBrains Mono',monospace",fontSize:15,
+                          width:24,textAlign:"center"}}>{t.icon}</span>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+            </nav>
+          </aside>
+
+          {/* Main */}
+          <main style={{flex:1,padding:32,overflowY:"auto"}}>
+            <HomePage onNavigate={handleHomeNavClick} />
+          </main>
+        </div>
+      </>
+    );
+  }
+
   return <>
     <style>{FONTS}</style>
+    <style>{`
+      @media (max-width: 768px) {
+        .sidebar { position: fixed !important; left: 0 !important; top: 0 !important; z-index: 1000 !important; transform: translateX(-100%) !important; transition: transform 0.3s ease !important; }
+        .sidebar.open { transform: translateX(0) !important; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; }
+        .sidebar-overlay.show { display: block; }
+        .mobile-menu-btn { display: flex !important; }
+        .main-content { padding: 24px 16px 60px !important; max-width: 100% !important; }
+        .grid-2col { grid-template-columns: 1fr !important; }
+        .plot-box { height: 280px !important; }
+        .hide-on-mobile { display: none !important; }
+        h1 { font-size: 22px !important; }
+        h2 { font-size: 18px !important; }
+        h3 { font-size: 16px !important; }
+        p { font-size: 15px !important; line-height: 1.65 !important; }
+        code, .eq-inline { font-size: 13px !important; }
+        .note-box { padding: 12px 14px !important; font-size: 14px !important; }
+        button { min-height: 44px !important; }
+        input[type="range"] { height: 6px !important; }
+        .quiz-options { gap: 6px !important; }
+        .quiz-options button { padding: 10px 12px !important; font-size: 14px !important; }
+      }
+      @media (min-width: 769px) {
+        .mobile-menu-btn { display: none !important; }
+        .sidebar-overlay { display: none !important; }
+      }
+    `}</style>
     <div style={{display:"flex",background:C.bg,minHeight:"100vh",color:C.text}}>
 
+      {/* Mobile Menu Button */}
+      <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{
+        position: "fixed", top: 12, left: 12, zIndex: 1001,
+        width: 44, height: 44, padding: 0,
+        background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8,
+        color: C.white, fontSize: 20, cursor: "pointer",
+        alignItems: "center", justifyContent: "center"
+      }}>
+        {mobileMenuOpen ? "✕" : "☰"}
+      </button>
+
+      {/* Mobile Overlay */}
+      <div className={`sidebar-overlay ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
+
       {/* ── Sidebar ── */}
-      <aside style={{
+      <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{
         width:264, background:C.surface, borderRight:`1px solid ${C.border}`,
         flexShrink:0, display:"flex", flexDirection:"column",
         position:"sticky", top:0, height:"100vh", overflowY:"auto",
@@ -3056,7 +3243,7 @@ export default function App() {
               lastGroup = t.group;
               return [
                 groupHeader,
-                <button key={t.id} onClick={()=>setActive(t.id)} style={{
+                <button key={t.id} onClick={()=>handleNavClick(t.id)} style={{
                   display:"flex", alignItems:"center", gap:11,
                   width:"100%", padding:"9px 20px",
                   background:isActive?"rgba(0,200,255,0.07)":"transparent",
@@ -3084,7 +3271,7 @@ export default function App() {
       </aside>
 
       {/* ── Main Content ── */}
-      <main style={{flex:1,overflowY:"auto",padding:"48px 52px 80px",maxWidth:880}}>
+      <main className="main-content" style={{flex:1,overflowY:"auto",padding:"48px 52px 80px",maxWidth:880}}>
         {/* Topic badge */}
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
           <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:C.muted,
