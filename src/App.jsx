@@ -42,6 +42,7 @@ const TOPICS = [
   { id:"quadrics",  label:"Quadric Surfaces",             icon:"◉",   color:C.purple, group:"Surfaces" },
   { id:"limits2d",  label:"Limits & Continuity in 2D",   icon:"lim", color:C.cyan,   group:"Surfaces" },
   { id:"partial",   label:"Partial Derivatives",          icon:"∂",   color:C.purple, group:"Differentiation" },
+  { id:"differentials", label:"Differentials & Linear Approximation", icon:"d", color:C.cyan, group:"Differentiation" },
   { id:"gradient",  label:"The Gradient",                 icon:"∇",   color:C.cyan,   group:"Differentiation" },
   { id:"optimize",  label:"Optimization",                 icon:"◬",   color:C.gold,   group:"Differentiation" },
   { id:"double",    label:"Double Integrals",             icon:"∬",   color:C.purple, group:"Integration" },
@@ -2659,12 +2660,345 @@ are all automatically continuous on their domains.`}
 }
 
 // ─────────────────────────────────────────────────────────────
+// PAGE — DIFFERENTIALS & LINEAR APPROXIMATION
+// ─────────────────────────────────────────────────────────────
+function DifferentialsPage() {
+  const pid = "pdiff";
+  const [fnKey, setFnKey] = useState("saddle");
+  const [px, setPx] = useState(1.0);
+  const [py, setPy] = useState(0.8);
+  const [showTangent, setShowTangent] = useState(true);
+  const [showDifferentials, setShowDifferentials] = useState(true);
+
+  const FNS = {
+    saddle: {
+      f: (x, y) => x * x - y * y,
+      fx: (x, y) => 2 * x,
+      fy: (x, y) => -2 * y,
+      label: "f(x,y) = x² − y²",
+      desc: "Saddle surface: fₓ = 2x, f_y = −2y"
+    },
+    paraboloid: {
+      f: (x, y) => x * x + y * y,
+      fx: (x, y) => 2 * x,
+      fy: (x, y) => 2 * y,
+      label: "f(x,y) = x² + y²",
+      desc: "Elliptic paraboloid (bowl): fₓ = 2x, f_y = 2y"
+    },
+    ripple: {
+      f: (x, y) => Math.sin(x * 1.5) * Math.cos(y * 1.5),
+      fx: (x, y) => 1.5 * Math.cos(x * 1.5) * Math.cos(y * 1.5),
+      fy: (x, y) => -1.5 * Math.sin(x * 1.5) * Math.sin(y * 1.5),
+      label: "f(x,y) = sin(1.5x)cos(1.5y)",
+      desc: "Wavy surface with multiple critical points"
+    },
+    peak: {
+      f: (x, y) => 3 * (1 - x) ** 2 * Math.exp(-x * x - (y + 1) ** 2) - 10 * (x / 5 - x ** 3 - y ** 5) * Math.exp(-x * x - y * y) - Math.exp(-((x + 1) ** 2) - y * y) / 3,
+      fx: (x, y) => (FNS.peak.f(x + 0.001, y) - FNS.peak.f(x - 0.001, y)) / 0.002,
+      fy: (x, y) => (FNS.peak.f(x, y + 0.001) - FNS.peak.f(x, y - 0.001)) / 0.002,
+      label: "f(x,y) = Peaks function",
+      desc: "Classic test function with multiple extrema"
+    }
+  };
+
+  useEffect(() => {
+    const fn = FNS[fnKey];
+    const xs = Array.from({ length: 50 }, (_, i) => -3 + 6 * i / 49);
+    
+    const surf = {
+      type: "surface",
+      x: xs,
+      y: xs,
+      z: xs.map(y => xs.map(x => fn.f(x, y))),
+      colorscale: [[0, "#0D2040"], [0.35, "#005599"], [0.6, "#00AACC"], [0.85, "#00DDBB"], [1, "#F5B942"]],
+      showscale: false,
+      opacity: 0.75
+    };
+
+    const traces = [surf];
+
+    if (showTangent) {
+      const a = px, b = py;
+      const fval = fn.f(a, b);
+      const fx = fn.fx(a, b);
+      const fy = fn.fy(a, b);
+
+      const tangentSize = 1.2;
+      const tx = [];
+      const ty = [];
+      const tz = [];
+      
+      for (let i = -20; i <= 20; i++) {
+        for (let j = -20; j <= 20; j++) {
+          const dx = i * tangentSize / 20;
+          const dy = j * tangentSize / 20;
+          const dz = fx * dx + fy * dy;
+          tx.push(a + dx);
+          ty.push(b + dy);
+          tz.push(fval + dz);
+        }
+      }
+
+      const tangentPlane = {
+        type: "surface",
+        x: tx,
+        y: ty,
+        z: tz,
+        colorscale: [[0, "rgba(255,85,102,0.3)"], [1, "rgba(255,85,102,0.3)"]],
+        showscale: false,
+        opacity: 0.5,
+        name: "Tangent plane"
+      };
+      traces.push(tangentPlane);
+    }
+
+    if (showDifferentials) {
+      const a = px, b = py;
+      const fval = fn.f(a, b);
+      const fx = fn.fx(a, b);
+      const fy = fn.fy(a, b);
+
+      const dx = 0.4, dy = 0.3;
+      const df = fx * dx + fy * dy;
+
+      const arrowX = {
+        type: "scatter3d",
+        x: [a, a + dx],
+        y: [b, b],
+        z: [fval, fval],
+        mode: "lines+markers",
+        line: { color: C.gold, width: 5 },
+        marker: { color: C.gold, size: [0, 8] },
+        name: "dx"
+      };
+
+      const arrowY = {
+        type: "scatter3d",
+        x: [a + dx, a + dx],
+        y: [b, b + dy],
+        z: [fval, fval],
+        mode: "lines+markers",
+        line: { color: C.green, width: 5 },
+        marker: { color: C.green, size: [0, 8] },
+        name: "dy"
+      };
+
+      const arrowZ = {
+        type: "scatter3d",
+        x: [a + dx, a + dx],
+        y: [b + dy, b + dy],
+        z: [fval, fval + df],
+        mode: "lines+markers",
+        line: { color: C.purple, width: 5 },
+        marker: { color: C.purple, size: [0, 8] },
+        name: "dz ≈ df"
+      };
+
+      const actualZ = fn.f(a + dx, b + dy);
+      const actualChange = actualZ - fval;
+      const errorArrow = {
+        type: "scatter3d",
+        x: [a + dx, a + dx],
+        y: [b + dy, b + dy],
+        z: [fval + df, actualZ],
+        mode: "lines+markers",
+        line: { color: C.red, width: 3, dash: "dash" },
+        marker: { color: C.red, size: [0, 6] },
+        name: `Error: ${(actualChange - df).toFixed(4)}`
+      };
+
+      traces.push(arrowX, arrowY, arrowZ, errorArrow);
+    }
+
+    const point = {
+      type: "scatter3d",
+      x: [px],
+      y: [py],
+      z: [fn.f(px, py)],
+      mode: "markers",
+      marker: { color: C.red, size: 10 },
+      name: "Point (a,b)"
+    };
+    traces.push(point);
+
+    Plotly.react(pid, traces, pLayout({
+      scene: { camera: { eye: { x: 1.8, y: 1.8, z: 1.4 } }, aspectmode: "cube" },
+      showlegend: true,
+      legend: { bgcolor: "rgba(0,0,0,0)", font: { color: C.text, size: 10 } }
+    }), pCfg);
+  }, [fnKey, px, py, showTangent, showDifferentials]);
+
+  const fn = FNS[fnKey];
+  const a = px, b = py;
+  const fval = fn.f(a, b);
+  const fx = fn.fx(a, b);
+  const fy = fn.fy(a, b);
+  const dx = 0.4, dy = 0.3;
+  const df_linear = fx * dx + fy * dy;
+  const df_actual = fn.f(a + dx, b + dy) - fval;
+
+  return <div>
+    <H1>Differentials & Linear Approximation</H1>
+    <P>
+      The <Em>differential</Em> is the multivariable generalization of the single-variable <Em>dy = f'(x) dx</Em>. It tells us how a function changes when all its inputs change simultaneously — the key to understanding sensitivity, error propagation, and making local approximations.
+    </P>
+
+    <H2>The Total Differential</H2>
+    <P>When multiple variables change at once, the total differential sums up all the individual contributions:</P>
+    <Eq block>{`df = ∂f/∂x · dx + ∂f/∂y · dy   =  fₓ dx + f_y dy
+
+In vector form:  df = ∇f · ⟨dx, dy⟩`}</Eq>
+    <P>Each term <Em>fₓ dx</Em> captures the change from the x-component, and <Em>f_y dy</Em> captures the y-component. The total is what you'd get if all changes happened at once.</P>
+
+    <Note color={C.cyan} title="The geometric picture">
+      {`The differential df is the change in the tangent plane:
+  z = f(a,b) + fₓ(a,b)(x−a) + f_y(a,b)(y−b)
+
+Moving by (dx, dy) from (a,b):
+  Δz ≈ df = fₓ·dx + f_y·dy  (the tangent plane lift)
+
+The approximation error is the vertical distance from the
+actual surface to the tangent plane — visible in the visualization!`}
+    </Note>
+
+    <H2>Linear Approximation</H2>
+    <P>The tangent plane gives the <Em>best linear approximation</Em> to a surface near a point. This is fundamental to optimization, numerical methods, and sensitivity analysis:</P>
+    <Eq block>{`f(x + Δx, y + Δy) ≈ f(x, y) + fₓ(x,y)·Δx + f_y(x,y)·Δy`}</Eq>
+    <Note color={C.gold} title="Why it works">
+      {`The approximation error is o(√(Δx² + Δy²)) — it goes to zero
+faster than the distance from (x,y). This is the definition of
+differentiability in multiple variables.
+
+For small enough Δx, Δy, the tangent plane is almost
+indistinguishable from the curved surface locally.`}
+    </Note>
+
+    <H2>Practical: Estimating Errors</H2>
+    <P>In engineering and science, differentials let us propagate measurement uncertainties:</P>
+    <Eq block>{`If x is measured with error ±Δx and y with error ±Δy,
+the resulting error in f(x,y) is approximately:
+
+|Δf| ≤ |fₓ|·|Δx| + |f_y|·|Δy|`}</Eq>
+    <Note color={C.purple} title="Example: Computing with rounded inputs">
+      {`Let f(x,y) = x²y. You compute x=3.01, y=1.98 but round to x≈3, y≈2.
+dx = 0.01, dy = −0.02
+
+fₓ = 2xy = 2(3)(2) = 12
+f_y = x² = 9
+
+df = 12(0.01) + 9(−0.02) = 0.12 − 0.18 = −0.06
+
+The linear approximation predicts f(3,2) ≈ 12 − 0.06 = 11.94
+Actual: 3.01² × 1.98 = 11.940798 ✓`}
+    </Note>
+
+    <H2>The Chain Rule for Differentials</H2>
+    <P>When variables depend on other variables, differentials chain together beautifully:</P>
+    <Eq block>{`If z = f(x,y) and x = g(t), y = h(t):
+  dz/dt = ∂f/∂x · dx/dt + ∂f/∂y · dy/dt
+
+If x = g(s,t), y = h(s,t):
+  dz/ds = fₓ·x_s + f_y·y_s
+  dz/dt = fₓ·x_t + f_y·y_t`}</Eq>
+    <Note color={C.green} title="The tree diagram method">
+      {`For z = f(x,y) with x = g(u,v), y = h(u,v):
+    z
+   / \\
+  x   y
+ / \\ / \\
+u   v u   v
+
+For ∂z/∂u: follow all paths from z to u, multiply along each:
+  ∂z/∂u = (∂z/∂x)(∂x/∂u) + (∂z/∂y)(∂y/∂u)
+
+This is the multivariable chain rule — generalizes to any depth!`}
+    </Note>
+
+    <H2>Differentials in Higher Dimensions</H2>
+    <P>Everything extends naturally to 3+ variables:</P>
+    <Eq block>{`df = fₓ dx + f_y dy + f_z dz   =   ∇f · d\mathbf{r}
+
+For a function of n variables:
+df = Σᵢ (∂f/∂xᵢ) dxᵢ`}</Eq>
+    <Note color={C.cyan} title="Applications in physics">
+      {`Thermodynamics is built on differentials:
+  dU = TdS − PdV   (internal energy change)
+  dF = −S dT − P dV  (Helmholtz free energy)
+
+Each term represents a "channel" through which energy can flow.
+The differentials encode the fundamental relations!`}
+    </Note>
+
+    <H2>Accuracy of Linear Approximation</H2>
+    <P>The linear approximation gets better as Δx, Δy get smaller. The error goes to zero faster than the step size — but how fast?</P>
+    <Eq block>{`Error = |f(x+Δx, y+Δy) − [f(x,y) + fₓΔx + f_yΔy]|
+         ≤ M(Δx² + Δy²)    for some constant M near the point`}</Eq>
+    <P>The error is <Em>second order</Em> — proportional to the square of the step size. Cut the step in half, error drops by about 4!</P>
+
+    <H3 color={C.cyan}>Interactive: Tangent Plane & Differential Explorer</H3>
+    <P>
+      The <Em c={C.red}>red point</Em> is your base point (a,b). The <Em c={C.cyan}>cyan surface</Em> is f(x,y). 
+      The <Em c={C.purple}>translucent plane</Em> is the tangent plane (linear approximation).
+    </P>
+    <P>
+      When you enable differentials: <Em c={C.gold}>gold arrow</Em> = dx, <Em c={C.green}>green arrow</Em> = dy, 
+      <Em c={C.purple}>purple arrow</Em> = df (predicted change), <Em c={C.red}>red dashed</Em> = actual error.
+    </P>
+
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+      {Object.entries(FNS).map(([k, v]) => (
+        <Btn key={k} active={fnKey === k} onClick={() => setFnKey(k)} color={C.cyan}>{v.label}</Btn>
+      ))}
+    </div>
+
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 10 }}>
+      <div>
+        <Slider label="a (x)" value={px} min={-2} max={2} step={0.05} onChange={setPx} />
+        <Slider label="b (y)" value={py} min={-2} max={2} step={0.05} onChange={setPy} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <Btn active={showTangent} onClick={() => setShowTangent(!showTangent)} color={C.purple}>
+          Tangent Plane {showTangent ? "ON" : "OFF"}
+        </Btn>
+        <Btn active={showDifferentials} onClick={() => setShowDifferentials(!showDifferentials)} color={C.gold}>
+          Show dx, dy, dz {showDifferentials ? "ON" : "OFF"}
+        </Btn>
+      </div>
+    </div>
+
+    <Note color={C.cyan}>
+      At (a,b) = ({a.toFixed(2)}, {b.toFixed(2)}):{"\n"}
+      f(a,b) = {fval.toFixed(4)}, fₓ = {fx.toFixed(4)}, f_y = {fy.toFixed(4)}
+    </Note>
+
+    {showDifferentials && (
+      <Note color={C.gold}>
+        With dx = {dx.toFixed(2)}, dy = {dy.toFixed(2)}:{"\n"}
+        Predicted change (df): {df_linear.toFixed(4)}{"\n"}
+        Actual change (Δf): {df_actual.toFixed(4)}{"\n"}
+        Error: {(df_actual - df_linear).toFixed(4)}
+      </Note>
+    )}
+
+    <PlotBox id={pid} h={500} />
+
+    <Quiz q="For f(x,y) = x³ + xy + y³, what is the differential df?"
+      opts={["(3x² + y) dx + (x + 3y²) dy", "3x² dx + 3y² dy", "(3x² + 1) dx + (3y² + 1) dy", "x³ + xy + y³"]} ans={0}
+      exp="Partial derivatives: fₓ = 3x² + y, f_y = x + 3y². The total differential df = fₓ dx + f_y dy = (3x² + y)dx + (x + 3y²)dy. Each variable's derivative multiplies its differential."/>
+
+    <Quiz q="You measure a cylinder's radius as r = 5 ± 0.1 cm and height as h = 10 ± 0.2 cm. Using V = πr²h, what's the approximate error in volume?"
+      opts={["± π cm³","± 15π cm³","± 45π cm³","± 5π cm³"]} ans={2}
+      exp="dV = ∂V/∂r·dr + ∂V/∂h·dh = (2πrh)dr + (πr²)dh = 2π(5)(10)(0.1) + π(5)²(0.2) = 10π + 5π = 15π ≈ 47.1 cm³. The ± 0.1 cm radius error matters more because r is squared!"/>
+  </div>;
+}
+
+// ─────────────────────────────────────────────────────────────
 // MAIN APP
 // ─────────────────────────────────────────────────────────────
 const PAGES = {
   vectors:VectorsPage, lines3d:Lines3DPage, curves:CurvesPage,
   surfaces:SurfacesPage, levelcurves:LevelCurvesPage, quadrics:QuadricsPage, limits2d:Limits2DPage,
-  partial:PartialPage, gradient:GradientPage, optimize:OptimizePage,
+  partial:PartialPage, differentials:DifferentialsPage, gradient:GradientPage, optimize:OptimizePage,
   double:DoubleIntPage, triple:TripleIntPage, vecfields:VecFieldsPage,
   lineint:LineIntPage, theorems:TheoremsPage,
 };
@@ -2692,7 +3026,7 @@ export default function App() {
           </div>
           <div style={{fontFamily:"'Playfair Display',serif",fontSize:19,fontWeight:700,
             color:C.white,lineHeight:1.3}}>
-            Multivariable{"\n"}Calculus
+            Fuck Multivariable{"\n"}Calculus
           </div>
           <div style={{marginTop:14,height:3,
             background:`linear-gradient(90deg,${C.cyan},${C.purple})`,borderRadius:2,overflow:"hidden"}}>
