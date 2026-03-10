@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Plotly from "plotly.js-dist-min";
+import katex from "katex";
+import "katex/dist/katex.min.css";
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS — "Deep Space Observatory" aesthetic
@@ -129,19 +131,23 @@ const Em = ({ children, c=C.cyan }) => (
   <span style={{ color:c, fontWeight:600 }}>{children}</span>
 );
 const Eq = ({ children, block=false }) => {
+  const html = katex.renderToString(children, {
+    throwOnError: false,
+    displayMode: block,
+  });
   if (block) return (
     <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:14.5, color:C.gold,
       background:"rgba(245,185,66,0.07)", border:`1px solid rgba(245,185,66,0.2)`,
       borderRadius:8, padding:"14px 20px", margin:"16px 0", lineHeight:2,
-      letterSpacing:0.3, overflowX:"auto", whiteSpace:"pre-wrap" }}>
-      {children}
-    </div>
+      letterSpacing:0.3, overflowX:"auto", whiteSpace:"pre-wrap" }}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
   );
   return (
     <code style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:14, color:C.gold,
-      background:"rgba(245,185,66,0.09)", padding:"2px 7px", borderRadius:4 }}>
-      {children}
-    </code>
+      background:"rgba(245,185,66,0.09)", padding:"2px 7px", borderRadius:4 }}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
   );
 };
 const Note = ({ title, children, color=C.purple }) => {
@@ -307,22 +313,24 @@ function VectorsPage() {
 
     <H2>Vectors in Component Form</H2>
     <P>A vector <Em>v</Em> in 3D space is written in terms of the standard basis vectors <Eq>î</Eq>, <Eq>ĵ</Eq>, <Eq>k̂</Eq>:</P>
-    <Eq block>v = ⟨a, b, c⟩ = a·î + b·ĵ + c·k̂
+    <Eq block>{`v = \\langle a, b, c \\rangle = a\\hat{\\imath} + b\\hat{\\jmath} + c\\hat{k}
 
-Magnitude:  |v| = √(a² + b² + c²)</Eq>
+\\text{Magnitude: } |v| = \\sqrt{a^2 + b^2 + c^2}`}</Eq>
 
     <H2>The Dot Product</H2>
     <P>The dot product takes two vectors and returns a <Em c={C.gold}>scalar</Em>. It measures alignment — how much the vectors point in the same direction:</P>
-    <Eq block>u · v = u₁v₁ + u₂v₂ + u₃v₃  =  |u||v| cos θ</Eq>
+    <Eq block>{`\\mathbf{u} \\cdot \\mathbf{v} = u_1 v_1 + u_2 v_2 + u_3 v_3 = |u||v|\\cos\\theta`}</Eq>
     <P>Key consequences: if <Eq>u · v = 0</Eq> the vectors are <Em>perpendicular</Em>. The dot product also lets us project one vector onto another and find angles instantly.</P>
 
     <H2>The Cross Product</H2>
     <P>The cross product takes two vectors and returns a <Em>new vector</Em> perpendicular to both. Its magnitude equals the area of the parallelogram the two vectors span:</P>
-    <Eq block>a × b =  | î   ĵ   k̂ |
-             | a₁  a₂  a₃ |
-             | b₁  b₂  b₃ |
-
-        = ⟨a₂b₃ − a₃b₂,  a₃b₁ − a₁b₃,  a₁b₂ − a₂b₁⟩</Eq>
+    <Eq block>{`\\mathbf{a} \\times \\mathbf{b} = 
+\\begin{vmatrix}
+\\hat{\\imath} & \\hat{\\jmath} & \\hat{k} \\\\
+a_1 & a_2 & a_3 \\\\
+b_1 & b_2 & b_3
+\\end{vmatrix}
+= \\langle a_2 b_3 - a_3 b_2, a_3 b_1 - a_1 b_3, a_1 b_2 - a_2 b_1 \\rangle`}</Eq>
     <Note color={C.purple} title="Right-hand rule">
       Point your right hand's fingers from a toward b, curl them — your thumb points in the direction of a × b. This gives the orientation of the perpendicular vector.
     </Note>
@@ -890,9 +898,9 @@ function PartialPage() {
 
     <H2>Definition</H2>
     <P>Treat all other variables as constants and differentiate normally:</P>
-    <Eq block>∂f/∂x = fₓ = lim[h→0] (f(x+h, y) − f(x, y)) / h
+    <Eq block>{`\\frac{\\partial f}{\\partial x} = f_x = \\lim_{h\\to0} \\frac{f(x+h, y) - f(x, y)}{h}
 
-∂f/∂y = f_y = lim[h→0] (f(x, y+h) − f(x, y)) / h</Eq>
+\\frac{\\partial f}{\\partial y} = f_y = \\lim_{h\\to0} \\frac{f(x, y+h) - f(x, y)}{h}`}</Eq>
     <P><Em c={C.gold}>Geometric meaning:</Em> <Eq>∂f/∂x</Eq> is the slope of the surface in the x-direction. <Eq>∂f/∂y</Eq> is the slope in the y-direction. Each is the slope of a curve you'd trace by slicing the surface with an axis-aligned vertical plane.</P>
 
     <H2>Computing Partial Derivatives</H2>
@@ -906,12 +914,12 @@ function PartialPage() {
 
     <H2>Higher-Order Partials & Clairaut's Theorem</H2>
     <P>We can differentiate multiple times. The <Em>mixed partials</Em> satisfy a beautiful symmetry:</P>
-    <Eq block>∂²f/∂x∂y  =  ∂²f/∂y∂x         (Clairaut's Theorem)</Eq>
+    <Eq block>{`\\frac{\\partial^2 f}{\\partial x\\,\\partial y} = \\frac{\\partial^2 f}{\\partial y\\,\\partial x} \\quad \\text{(Clairaut's Theorem)}`}</Eq>
     <P>As long as the second partial derivatives are continuous, the order of differentiation doesn't matter. You can verify this easily: try <Eq>f = x²y³</Eq> and differentiate both ways.</P>
 
     <H2>The Tangent Plane</H2>
     <P>The two partial derivatives together define the <Em>tangent plane</Em> to the surface at (a, b, f(a,b)) — the best flat approximation near that point:</P>
-    <Eq block>z  =  f(a,b) + fₓ(a,b)·(x − a) + f_y(a,b)·(y − b)</Eq>
+    <Eq block>{`z = f(a,b) + f_x(a,b)\\cdot(x - a) + f_y(a,b)\\cdot(y - b)`}</Eq>
     <P>This is the multivariable analogue of the tangent line. We use it for <Em>linear approximation</Em>: <Eq>Δf ≈ fₓΔx + f_yΔy</Eq>.</P>
 
     <H3>Interactive: Tangent Lines at Any Point</H3>
@@ -971,8 +979,9 @@ function GradientPage() {
   return <div>
     <H1>The Gradient</H1>
     <P>The <Em>gradient</Em> ∇f bundles all partial derivatives into one vector, pointing in the direction of <Em c={C.gold}>steepest ascent</Em>. It is arguably the most important object in all of multivariable calculus.</P>
-    <Eq block>∇f  =  ⟨∂f/∂x, ∂f/∂y⟩   (2D)
-∇f  =  ⟨∂f/∂x, ∂f/∂y, ∂f/∂z⟩   (3D)</Eq>
+    <Eq block>{`\\nabla f = \\langle \\frac{\\partial f}{\\partial x}, \\frac{\\partial f}{\\partial y} \\rangle \\quad (2D)
+
+\\nabla f = \\langle \\frac{\\partial f}{\\partial x}, \\frac{\\partial f}{\\partial y}, \\frac{\\partial f}{\\partial z} \\rangle \\quad (3D)`}</Eq>
 
     <H2>Three Key Properties</H2>
     <Note color={C.cyan} title="Direction of steepest ascent">∇f points in the direction that increases f the fastest. If you're hiking, ∇f points straight uphill.</Note>
@@ -981,7 +990,7 @@ function GradientPage() {
 
     <H2>Directional Derivatives</H2>
     <P>The <Em>directional derivative</Em> D_û f gives the rate of change in any direction û (a unit vector):</P>
-    <Eq block>D_û f = ∇f · û  =  |∇f| cos θ</Eq>
+    <Eq block>{`D_{\\hat{u}} f = \\nabla f \\cdot \\hat{u} = |\\nabla f| \\cos \\theta`}</Eq>
     <P>This is maximized (= |∇f|) when û aligns with ∇f. It's zero when û is tangent to a level curve. It's most negative (= −|∇f|) when û points opposite to ∇f.</P>
     <Note color={C.gold} title="Example">
       {`f(x,y) = x² + y²,   û = ⟨1/√2, 1/√2⟩
@@ -1032,7 +1041,7 @@ function OptimizePage() {
 
     <H2>Critical Points</H2>
     <P>Critical points occur where all partial derivatives are zero simultaneously:</P>
-    <Eq block>∇f = 0   ⟺   ∂f/∂x = 0  AND  ∂f/∂y = 0</Eq>
+    <Eq block>{`\\nabla f = \\mathbf{0} \\iff \\frac{\\partial f}{\\partial x} = 0 \\quad \\text{and} \\quad \\frac{\\partial f}{\\partial y} = 0`}</Eq>
     <P>Unlike single-variable calculus, we now have a third possibility beyond max and min: the <Em c={C.gold}>saddle point</Em>, where the surface curves up in one direction and down in another.</P>
 
     <H2>The Second Derivative Test</H2>
@@ -1054,9 +1063,9 @@ det(H) > 0 means H is definite — same curvature sign in all directions (bowl o
 
     <H2>Lagrange Multipliers</H2>
     <P>When we must optimize subject to a <Em>constraint</Em> g(x,y) = 0, Lagrange multipliers are the elegant solution:</P>
-    <Eq block>Maximize/minimize f(x,y) subject to g(x,y) = 0
+    <Eq block>{`\\text{Maximize/minimize } f(x,y) \\text{ subject to } g(x,y) = 0
 
-Condition:  ∇f = λ ∇g   AND   g(x,y) = 0</Eq>
+\\text{Condition: } \\nabla f = \\lambda \\nabla g \\quad \\text{and} \\quad g(x,y) = 0`}</Eq>
     <P>The geometric insight: at a constrained extremum, ∇f must be parallel to ∇g. If they weren't parallel, you could move along the constraint curve and improve f — contradicting the extremum.</P>
     <Note color={C.gold} title="Classic Example">
       {`Maximize f(x,y) = xy subject to g(x,y) = x+y−10 = 0.
@@ -3033,7 +3042,7 @@ The differentials encode the fundamental relations!`}
       exp="Partial derivatives: fₓ = 3x² + y, f_y = x + 3y². The total differential df = fₓ dx + f_y dy = (3x² + y)dx + (x + 3y²)dy. Each variable's derivative multiplies its differential."/>
 
     <Quiz q="You measure a cylinder's radius as r = 5 ± 0.1 cm and height as h = 10 ± 0.2 cm. Using V = πr²h, what's the approximate error in volume?"
-      opts={["± π cm³","± 15π cm³","± 45π cm³","± 5π cm³"]} ans={2}
+      opts={["± π cm³","± 15π cm³","± 45π cm³","± 5π cm³"]} ans={1}
       exp="dV = ∂V/∂r·dr + ∂V/∂h·dh = (2πrh)dr + (πr²)dh = 2π(5)(10)(0.1) + π(5)²(0.2) = 10π + 5π = 15π ≈ 47.1 cm³. The ± 0.1 cm radius error matters more because r is squared!"/>
   </div>;
 }
